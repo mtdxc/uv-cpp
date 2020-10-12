@@ -34,10 +34,9 @@ public:
     bool isListen();
     void close(DefaultCallback callback);
     bool isTcpNoDelay();
-    void setNewConnectinonCallback( NewConnectionCallback callback);
+    void setNewConnectinonCallback(NewConnectionCallback callback);
 
     EventLoop* Loop();
-    
 
 private:
     bool listened_;
@@ -48,7 +47,7 @@ private:
     uv_tcp_t server_;
 
     void onNewConnect(UVTcpPtr client);
-    void onCloseComlet();
+    void onCloseComplete();
 };
 
 }

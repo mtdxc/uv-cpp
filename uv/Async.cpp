@@ -87,7 +87,7 @@ void Async::Callback(uv_async_t* handle)
 
 void uv::Async::onCloseCompleted()
 {
-    if (nullptr != onCloseCompletCallback_)
+    if (onCloseCompletCallback_)
     {
         onCloseCompletCallback_(this);
     }

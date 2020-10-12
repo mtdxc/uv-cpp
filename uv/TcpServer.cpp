@@ -20,7 +20,7 @@ using namespace std;
 using namespace uv;
 
 
-void uv::TcpServer::SetBufferMode(uv::GlobalConfig::BufferMode mode)
+void TcpServer::SetBufferMode(uv::GlobalConfig::BufferMode mode)
 {
     uv::GlobalConfig::BufferModeStatus = mode;
 }
@@ -47,12 +47,12 @@ void TcpServer::setTimeout(unsigned int seconds)
     timerWheel_.setTimeout(seconds);
 }
 
-void uv::TcpServer::onAccept(EventLoop * loop, UVTcpPtr client)
+void TcpServer::onAccept(EventLoop * loop, UVTcpPtr client)
 {
     string key;
     SocketAddr::AddrToStr(client.get(), key, ipv_);
 
-    uv::LogWriter::Instance()->debug("new connect  " + key);
+    uv::LogWriter::Instance()->debug("new connect " + key);
     shared_ptr<TcpConnection> connection(new TcpConnection(loop, key, client));
     if (connection)
     {
@@ -70,7 +70,7 @@ void uv::TcpServer::onAccept(EventLoop * loop, UVTcpPtr client)
     }
     else
     {
-        uv::LogWriter::Instance()->error("create connection fail. :" + key);
+        uv::LogWriter::Instance()->error("create connection fail:" + key);
     }
 }
 
@@ -129,12 +129,10 @@ void TcpServer::closeConnection(const string& name)
         connection->close([this](std::string& name)
         {
             auto connection = getConnnection(name);
-            if (nullptr != connection)
+            if (connection)
             {
                 if (onConnectCloseCallback_)
-                {
                     onConnectCloseCallback_(connection);
-                }
                 removeConnnection(name);
             }
 
@@ -162,7 +160,7 @@ void TcpServer::setMessageCallback(OnMessageCallback callback)
 
 void TcpServer::write(shared_ptr<TcpConnection> connection,const char* buf,unsigned int size, AfterWriteCallback callback)
 {
-    if(nullptr != connection)
+    if(connection)
     {
         connection->write(buf,size, callback);
     }
@@ -181,7 +179,7 @@ void TcpServer::write(string& name,const char* buf,unsigned int size,AfterWriteC
 
 void TcpServer::writeInLoop(shared_ptr<TcpConnection> connection,const char* buf,unsigned int size,AfterWriteCallback callback)
 {
-    if(nullptr != connection)
+    if(connection)
     {
         connection->writeInLoop(buf,size,callback);
     }

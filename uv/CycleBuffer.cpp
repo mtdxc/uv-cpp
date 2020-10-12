@@ -12,11 +12,12 @@ Description: https://github.com/wlgq2/uv-cpp
 
 using namespace uv;
 
-CycleBuffer::CycleBuffer()
+CycleBuffer::CycleBuffer(uint64_t size)
     :writeIndex_(0),
     readIndex_(0)
 {
-    buffer_ = new uint8_t[GlobalConfig::GlobalConfig::CycleBufferSize];
+    size_ = size;
+    buffer_ = new uint8_t[size];
 }
 
 CycleBuffer::~CycleBuffer()
@@ -51,12 +52,12 @@ int CycleBuffer::append(const char* data, uint64_t size)
 
 int CycleBuffer::readBufferN(std::string& data, uint64_t N)
 {
-    SizeInfo info;
-    readSizeInfo(info);
     if (N > readSize())
     {
         return -1;
     }
+    SizeInfo info;
+    readSizeInfo(info);
     int start = (int)data.size();
     data.resize(start + N);
     //string被resize空间，所以操作指针安全
@@ -68,7 +69,7 @@ int CycleBuffer::readBufferN(std::string& data, uint64_t N)
     }
     else
     {
-        std::copy(buffer_ + readIndex_, buffer_ + GlobalConfig::CycleBufferSize, out);
+        std::copy(buffer_ + readIndex_, buffer_ + size_, out);
         uint64_t remain = N - info.part1;
         std::copy(buffer_, buffer_ + remain, out + info.part1);
     }
@@ -80,7 +81,7 @@ int CycleBuffer::clearBufferN(uint64_t N)
 {
     if(N>readSize())
     {
-        N =readSize();
+        N = readSize();
     }
     addReadIndex(N);
     return 0;
@@ -102,7 +103,7 @@ uint64_t CycleBuffer::usableSize()
     }
     else
     {
-        usable = GlobalConfig::CycleBufferSize + readIndex_- writeIndex_-1;
+        usable = size_ + readIndex_- writeIndex_-1;
     }
     return usable;
 }
@@ -117,7 +118,7 @@ void CycleBuffer::usableSizeInfo(SizeInfo& info)
     else
     {
         bool readIsZore = (0 == readIndex_);
-        info.part1 = readIsZore ? GlobalConfig::CycleBufferSize - writeIndex_-1: GlobalConfig::CycleBufferSize - writeIndex_;
+        info.part1 = readIsZore ? size_ - writeIndex_-1: size_ - writeIndex_;
         info.part2 = readIsZore ? 0 : readIndex_ - 1;
     }
     info.size = info.part1 + info.part2;
@@ -139,7 +140,7 @@ void CycleBuffer::readSizeInfo(SizeInfo& info)
     }
     else
     {
-        info.part1 = GlobalConfig::CycleBufferSize - readIndex_;
+        info.part1 = size_ - readIndex_;
         info.part2 = writeIndex_;
     }
     info.size = info.part1 + info.part2;
@@ -147,20 +148,20 @@ void CycleBuffer::readSizeInfo(SizeInfo& info)
 
 int CycleBuffer::addWriteIndex(uint64_t size)
 {
-    if (size > GlobalConfig::CycleBufferSize)
+    if (size > size_)
         return -1;
     writeIndex_ += size;
-    if (writeIndex_ >= GlobalConfig::CycleBufferSize)
-        writeIndex_ -= GlobalConfig::CycleBufferSize;
+    if (writeIndex_ >= size_)
+        writeIndex_ -= size_;
     return 0;
 }
 
 int CycleBuffer::addReadIndex(uint64_t size)
 {
-    if (size > GlobalConfig::CycleBufferSize)
+    if (size > size_)
         return -1;
     readIndex_ += size;
-    if (readIndex_ >= GlobalConfig::CycleBufferSize)
-        readIndex_ -= GlobalConfig::CycleBufferSize;
+    if (readIndex_ >= size_)
+        readIndex_ -= size_;
     return 0;
 }

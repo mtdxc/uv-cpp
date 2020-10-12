@@ -33,7 +33,7 @@ int ListBuffer::append(const char* data, uint64_t size)
 }
 
 
-int uv::ListBuffer::readBufferN(std::string& data, uint64_t N)
+int ListBuffer::readBufferN(std::string& data, uint64_t N)
 {
     if (N > (uint64_t)buffer_.size())
         return -1;
@@ -46,12 +46,12 @@ int uv::ListBuffer::readBufferN(std::string& data, uint64_t N)
     return 0;
 }
 
-uint64_t uv::ListBuffer::readSize()
+uint64_t ListBuffer::readSize()
 {
     return (uint64_t)buffer_.size();
 }
 
-int uv::ListBuffer::clearBufferN(uint64_t N)
+int ListBuffer::clearBufferN(uint64_t N)
 {
     for (uint64_t i = 0; i < N; i++)
     {
@@ -62,7 +62,7 @@ int uv::ListBuffer::clearBufferN(uint64_t N)
     return 0;
 }
 
-int uv::ListBuffer::clear()
+int ListBuffer::clear()
 {
     buffer_.clear();
     return 0;

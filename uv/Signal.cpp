@@ -25,7 +25,7 @@ Signal::Signal(EventLoop* loop, int sig, SignalHandle handle)
     ::uv_signal_start(signal_, &Signal::onSignal, sig);
 }
 
-void uv::Signal::close(DefaultCallback callback)
+void Signal::close(DefaultCallback callback)
 {
     closeCallback_ = callback;
     if (uv_is_closing((uv_handle_t*)signal_) == 0)
@@ -63,15 +63,15 @@ bool Signal::handle(int signum)
     return false;
 }
 
-void uv::Signal::closeComplete()
+void Signal::closeComplete()
 {
     if (closeCallback_)
         closeCallback_();
 }
 
-void uv::Signal::Ignore(int sig)
+void Signal::Ignore(int sig)
 {
-#ifdef    __linux__
+#ifdef __linux__
     signal(sig, SIG_IGN);
 #endif
 }
@@ -81,6 +81,6 @@ void Signal::onSignal(uv_signal_t* handle, int signum)
     auto ptr = static_cast <Signal*>(handle->data);
     if (!ptr->handle(signum))
     {
-        uv::LogWriter::Instance()->warn( std::string("non defined signal handle :")+std::to_string(signum));
+        uv::LogWriter::Instance()->warn(std::string("non defined signal handle :") + std::to_string(signum));
     }
 }

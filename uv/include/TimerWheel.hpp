@@ -21,7 +21,7 @@ namespace uv
 {
 
 //algorithm complexity  o(1).
-
+// clear when timeout sec
 template<typename Type>
 class TimerWheel
 {
@@ -79,7 +79,7 @@ inline void TimerWheel<Type>::start()
 template<typename Type>
 inline void TimerWheel<Type>::insert(std::shared_ptr<Type> value)
 {
-    if (timeoutSec_ > 0 && nullptr != value)
+    if (timeoutSec_ > 0 && value)
     {
         wheel_[index_].insert(value);
     }

@@ -24,7 +24,7 @@ void DNSGet::setOnDNSCallback(OnGetIPAddrCallback callback)
     callback_ = callback;
 }
 
-int DNSGet::GetIP(std::string& hostname, std::string service )
+int DNSGet::GetIP(std::string& hostname, std::string service)
 {
     return uv_getaddrinfo(loop_->handle(), &handle_, DNSGet::onDNSGet, hostname.c_str(), service.c_str(), NULL);
 }
@@ -46,13 +46,11 @@ void DNSGet::OnCallback(int status, addrinfo* res)
         ip.resize(32);
 #if    _MSC_VER
         if (res->ai_protocol == IPPROTO_IPV4 || res->ai_protocol == IPPROTO_TCP || res->ai_protocol == IPPROTO_IP)
-        
 #else
         if (res->ai_protocol == IPPROTO_TCP || res->ai_protocol == IPPROTO_IP)
 #endif
         {
             uv_ip4_name((struct sockaddr_in*) res->ai_addr, (char*)ip.c_str(), ip.size());
-
         }
         else if (res->ai_protocol == IPPROTO_IPV6)
         {

@@ -40,14 +40,14 @@ void Timer::start()
 void Timer::close(TimerCloseComplete callback)
 {
     closeComplete_ = callback;
-    if (uv_is_active((uv_handle_t*)handle_))
+    uv_handle_t* handle = (uv_handle_t*)handle_;
+    if (uv_is_active(handle))
     {
         uv_timer_stop(handle_);
     }
-    if (uv_is_closing((uv_handle_t*)handle_) == 0)
+    if (uv_is_closing(handle) == 0)
     {
-        ::uv_close((uv_handle_t*)handle_,
-            [](uv_handle_t* handle)
+        ::uv_close(handle, [](uv_handle_t* handle)
         {
             auto ptr = static_cast<Timer*>(handle->data);
             ptr->closeComplete();
@@ -71,9 +71,7 @@ void Timer::setTimerRepeat(uint64_t ms)
 void Timer::onTimeOut()
 {
     if (callback_)
-    {
         callback_(this);
-    }
 }
 
 void Timer::closeComplete()

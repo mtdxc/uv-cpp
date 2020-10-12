@@ -2,7 +2,7 @@
 
 
 #include "EchoServer.hpp"
-#include "Clinet.hpp"
+#include "Client.hpp"
 
 
 using namespace uv;

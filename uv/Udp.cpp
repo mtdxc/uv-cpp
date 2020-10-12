@@ -16,8 +16,8 @@ Udp::Udp(EventLoop* loop)
     :handle_(new uv_udp_t()),
     onMessageCallback_(nullptr)
 {
-    ::uv_udp_init(loop->handle(),handle_);
     handle_->data = this;
+    ::uv_udp_init(loop->handle(),handle_);
 }
 
 Udp::~Udp()
@@ -37,11 +37,7 @@ int Udp::bindAndRead(SocketAddr& addr)
         [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
     {
         buf->base = new char[suggested_size];
-#if _MSC_VER
-        buf->len = (ULONG)suggested_size;
-#else
         buf->len = suggested_size;
-#endif
     },
         &Udp::onMesageReceive);
 }
@@ -88,14 +84,12 @@ void Udp::close(DefaultCallback callback)
 void Udp::onCloseCompleted()
 {
     if (onClose_)
-    {
         onClose_();
-    }
 }
 
 void Udp::onMessage(const sockaddr* from, const char* data, unsigned size)
 {
-    if (nullptr != onMessageCallback_)
+    if (onMessageCallback_)
     {
         SocketAddr addr(from, ipv_);
         onMessageCallback_(addr, data, size);

@@ -64,7 +64,7 @@ int EventLoop::run()
         async_->init();
         loopThreadId_ = std::this_thread::get_id();
         status_ = Status::Runed;
-        auto rst = ::uv_run(loop_, UV_RUN_DEFAULT);
+        int rst = ::uv_run(loop_, UV_RUN_DEFAULT);
         status_ = Status::Stop;
         return rst;
     }
@@ -78,7 +78,7 @@ int uv::EventLoop::runNoWait()
         async_->init();
         loopThreadId_ = std::this_thread::get_id();
         status_ = Status::Runed;
-        auto rst = ::uv_run(loop_, UV_RUN_NOWAIT);
+        int rst = ::uv_run(loop_, UV_RUN_NOWAIT);
         status_ = Status::NotRun;
         return rst;
     }

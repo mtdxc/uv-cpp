@@ -34,11 +34,12 @@ public:
 private:
     uv_signal_t* signal_;
     SignalHandle handle_;
-    DefaultCallback closeCallback_;
 
     bool handle(int signum);
-    void closeComplete();
     static void onSignal(uv_signal_t* handle, int signum);
+
+    DefaultCallback closeCallback_;
+    void closeComplete();
 };
 
 }

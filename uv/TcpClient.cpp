@@ -35,16 +35,23 @@ TcpClient::~TcpClient()
     delete connect_;
 }
 
-bool uv::TcpClient::isTcpNoDelay()
+bool TcpClient::isTcpNoDelay()
 {
     return tcpNoDelay_;
 }
 
-void uv::TcpClient::setTcpNoDelay(bool isNoDelay)
+void TcpClient::setTcpNoDelay(bool isNoDelay)
 {
     tcpNoDelay_ = isNoDelay;
 }
 
+void TcpClient::update()
+{
+    socket_ = make_shared<uv_tcp_t>();
+    ::uv_tcp_init(loop_->handle(), socket_.get());
+    if (tcpNoDelay_)
+        ::uv_tcp_nodelay(socket_.get(), 1);
+}
 
 void TcpClient::connect(SocketAddr& addr)
 {
@@ -55,12 +62,11 @@ void TcpClient::connect(SocketAddr& addr)
         auto handle = static_cast<TcpClient*>((req->data));
         if (0 != status)
         {
-            uv::LogWriter::Instance()->error( "connect fail.");
+            uv::LogWriter::Instance()->error("connect fail.");
             handle->onConnect(false);
-            return;
         }
-
-        handle->onConnect(true);
+        else
+            handle->onConnect(true);
     });
 }
 
@@ -78,15 +84,15 @@ void TcpClient::onConnect(bool successed)
     }
     else
     {
-        if (::uv_is_active((uv_handle_t*)socket_.get()))
+        uv_handle_t* handle = (uv_handle_t*)socket_.get();
+        if (::uv_is_active(handle))
         {
-            ::uv_read_stop((uv_stream_t*)socket_.get());
+            ::uv_read_stop((uv_stream_t*)handle);
         }
-        if (::uv_is_closing((uv_handle_t*)socket_.get()) == 0)
+        if (::uv_is_closing(handle) == 0)
         {
             socket_->data = static_cast<void*>(this);
-            ::uv_close((uv_handle_t*)socket_.get(),
-                [](uv_handle_t* handle)
+            ::uv_close(handle, [](uv_handle_t* handle)
             {
                 auto client = static_cast<TcpClient*>(handle->data);
                 client->afterConnectFail();
@@ -94,21 +100,26 @@ void TcpClient::onConnect(bool successed)
         }
     }
 }
+
+void TcpClient::afterConnectFail()
+{
+    runConnectCallback(TcpClient::OnConnnectFail);
+}
+
 void TcpClient::onConnectClose(string& name)
 {
     if (connection_)
-    {
         connection_->close(std::bind(&TcpClient::onClose,this,std::placeholders::_1));
-    }
-
 }
-void TcpClient::onMessage(shared_ptr<TcpConnection> connection,const char* buf,ssize_t size)
+
+void TcpClient::onClose(std::string& name)
 {
-    if(onMessageCallback_)
-        onMessageCallback_(buf,size);
+    //connection_ = nullptr;
+    uv::LogWriter::Instance()->info("Close tcp client connection complete.");
+    runConnectCallback(TcpClient::OnConnnectClose);
 }
 
-void uv::TcpClient::close(std::function<void(uv::TcpClient*)> callback)
+void TcpClient::close(std::function<void(TcpClient*)> callback)
 {
     if (connection_)
     {
@@ -126,12 +137,7 @@ void uv::TcpClient::close(std::function<void(uv::TcpClient*)> callback)
     }
 }
 
-void uv::TcpClient::afterConnectFail()
-{
-    runConnectCallback(TcpClient::OnConnnectFail);
-}
-
-void uv::TcpClient::write(const char* buf, unsigned int size, AfterWriteCallback callback)
+void TcpClient::write(const char* buf, unsigned int size, AfterWriteCallback callback)
 {
     if (connection_)
     {
@@ -146,7 +152,7 @@ void uv::TcpClient::write(const char* buf, unsigned int size, AfterWriteCallback
 
 }
 
-void uv::TcpClient::writeInLoop(const char * buf, unsigned int size, AfterWriteCallback callback)
+void TcpClient::writeInLoop(const char * buf, unsigned int size, AfterWriteCallback callback)
 {
     if (connection_)
     {
@@ -160,46 +166,37 @@ void uv::TcpClient::writeInLoop(const char * buf, unsigned int size, AfterWriteC
     }
 }
 
-void uv::TcpClient::setConnectStatusCallback(ConnectStatusCallback callback)
+void TcpClient::setConnectStatusCallback(ConnectStatusCallback callback)
 {
     connectCallback_ = callback;
 }
 
-void uv::TcpClient::setMessageCallback(NewMessageCallback callback)
-{
-    onMessageCallback_ = callback;
-}
-
-EventLoop* uv::TcpClient::Loop()
-{
-    return loop_;
-}
-
-PacketBufferPtr uv::TcpClient::getCurrentBuf()
-{
-    if (connection_)
-        return connection_->getPacketBuffer();
-    return nullptr;
-}
-
-
-void TcpClient::update()
-{
-    socket_ = make_shared<uv_tcp_t>();
-    ::uv_tcp_init(loop_->handle(), socket_.get());
-    if (tcpNoDelay_)
-        ::uv_tcp_nodelay(socket_.get(), 1 );
-}
-
-void uv::TcpClient::runConnectCallback(TcpClient::ConnectStatus satus)
+void TcpClient::runConnectCallback(TcpClient::ConnectStatus satus)
 {
     if (connectCallback_)
         connectCallback_(satus);
 }
 
-void uv::TcpClient::onClose(std::string& name)
+void TcpClient::setMessageCallback(NewMessageCallback callback)
 {
-    //connection_ = nullptr;
-    uv::LogWriter::Instance()->info("Close tcp client connection complete.");
-    runConnectCallback(TcpClient::OnConnnectClose);
+    onMessageCallback_ = callback;
+}
+
+void TcpClient::onMessage(shared_ptr<TcpConnection> connection, const char* buf, ssize_t size)
+{
+    if (onMessageCallback_)
+        onMessageCallback_(buf, size);
+}
+
+EventLoop* TcpClient::Loop()
+{
+    return loop_;
+}
+
+PacketBufferPtr TcpClient::getCurrentBuf()
+{
+    PacketBufferPtr ret = nullptr;
+    if (connection_)
+        ret = connection_->getPacketBuffer();
+    return ret;
 }

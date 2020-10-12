@@ -33,9 +33,9 @@ void EchoServer::newMessage(shared_ptr<TcpConnection> connection,const char* buf
         connection->write(buf, size, nullptr);
 
 #else     //调用write in loop接口
-        //实质会直接调用write，并不需要memcpy。
+        //实际会直接调用write，并不需要memcpy。
         //writeInLoop需要数据在回调中释放。
-        char* data = new  char[size]();
+        char* data = new  char[size];
         memcpy(data, buf, size);
         connection->writeInLoop(data, size,
             [this](WriteInfo& info)
@@ -51,12 +51,12 @@ void EchoServer::newMessage(shared_ptr<TcpConnection> connection,const char* buf
     }
     else  //使用buffer
     {
-        Packet packet;
         auto packetbuf = connection->getPacketBuffer();
-        if (nullptr != packetbuf)
+        if (packetbuf)
         {
             packetbuf->append(buf, static_cast<int>(size));
             //循环读取buffer
+            Packet packet;
             while (0 == packetbuf->readPacket(packet))
             {
                 std::cout << "receive data "<< packet.DataSize()<<":" << packet.getData() << std::endl;

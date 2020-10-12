@@ -13,7 +13,7 @@ Description: https://github.com/wlgq2/uv-cpp
 
 using namespace uv;
 
-uv::SocketAddr::SocketAddr(const std::string&& ip, unsigned short port, IPV ipv)
+SocketAddr::SocketAddr(const std::string&& ip, unsigned short port, IPV ipv)
     :ip_(ip),
     port_(port),
     ipv_(ipv)
@@ -28,13 +28,13 @@ uv::SocketAddr::SocketAddr(const std::string&& ip, unsigned short port, IPV ipv)
     }
 }
 
-uv::SocketAddr::SocketAddr(const std::string& ip, unsigned short port, IPV ipv)
+SocketAddr::SocketAddr(const std::string& ip, unsigned short port, IPV ipv)
     :SocketAddr(std::move(ip), port, ipv)
 {
 
 }
 
-uv::SocketAddr::SocketAddr(const sockaddr* addr, IPV ipv)
+SocketAddr::SocketAddr(const sockaddr* addr, IPV ipv)
     :ipv_(ipv)
 {
     if (ipv_ == Ipv4)
@@ -48,28 +48,27 @@ uv::SocketAddr::SocketAddr(const sockaddr* addr, IPV ipv)
     port_ = GetIpAndPort((const sockaddr_storage *)(addr), ip_, ipv);
 }
 
-const sockaddr * uv::SocketAddr::Addr()
+const sockaddr * SocketAddr::Addr()
 {
     return (ipv_ == Ipv6) ? reinterpret_cast<const sockaddr*>(&ipv6_) : reinterpret_cast<const sockaddr*>(&ipv4_);
 }
 
-void uv::SocketAddr::toStr(std::string & str)
+void SocketAddr::toStr(std::string & str)
 {
     str = ip_ + ":" + std::to_string(port_);
 }
 
-std::string uv::SocketAddr::toStr()
+std::string SocketAddr::toStr()
 {
-    std::string str = ip_ + ":" + std::to_string(port_);
-    return str;
+    return ip_ + ":" + std::to_string(port_);
 }
 
-SocketAddr::IPV uv::SocketAddr::Ipv()
+SocketAddr::IPV SocketAddr::Ipv()
 {
     return ipv_;
 }
 
-void uv::SocketAddr::AddrToStr(uv_tcp_t* client, std::string& addrStr, IPV ipv)
+void SocketAddr::AddrToStr(uv_tcp_t* client, std::string& addrStr, IPV ipv)
 {
     struct sockaddr_storage addr;
     int len = sizeof(struct sockaddr_storage);
@@ -79,7 +78,7 @@ void uv::SocketAddr::AddrToStr(uv_tcp_t* client, std::string& addrStr, IPV ipv)
     addrStr += ":" + std::to_string(port);
 }
 
-uint16_t uv::SocketAddr::GetIpAndPort(const sockaddr_storage* addr, std::string& out, IPV ipv)
+uint16_t SocketAddr::GetIpAndPort(const sockaddr_storage* addr, std::string& out, IPV ipv)
 {
     auto inet = (Ipv6 == ipv) ? AF_INET6 : AF_INET;
     if (Ipv6 == ipv)

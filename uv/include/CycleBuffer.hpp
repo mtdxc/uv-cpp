@@ -27,7 +27,7 @@ Description: https://github.com/wlgq2/uv-cpp
 //   write position  read position
 
 //not thread safe.
-
+#include "GlobalConfig.hpp"
 namespace uv
 {
 
@@ -41,7 +41,7 @@ struct SizeInfo
 class CycleBuffer :public PacketBuffer
 {
 public:
-    CycleBuffer();
+    CycleBuffer(uint64_t s = GlobalConfig::GlobalConfig::CycleBufferSize);
     ~CycleBuffer();
 
     //写字节时必须距离读字节一个字节，否则无法区分缓存满/空。
@@ -61,6 +61,7 @@ private:
 
 private:
     uint8_t* buffer_;
+    uint64_t size_;
     uint64_t writeIndex_;
     uint64_t readIndex_;
 

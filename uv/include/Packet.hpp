@@ -66,7 +66,7 @@ template<typename NumType>
 inline void Packet::UnpackNum(const uint8_t* data, NumType& num)
 {
     num = 0;
-    auto size = static_cast<int>(sizeof(NumType));
+    int size = static_cast<int>(sizeof(NumType));
     if (Packet::DataMode::BigEndian == Packet::Mode)
     {
         for (int i = 0; i < size; i++)
